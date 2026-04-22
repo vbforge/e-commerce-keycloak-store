@@ -1,0 +1,37 @@
+server:
+  port: 8081 # client's application running on port http://localhost:8081/
+
+spring:
+  application:
+    name: e-commerce-storefront
+
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/e_commerce_store_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:11111111}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
+    database: mysql
+    open-in-view: false
+
+  thymeleaf:
+    cache: false
+    prefix: classpath:/templates/
+    suffix: .html
+    mode: HTML
+    encoding: UTF-8
+    servlet:
+      content-type: text/html
+
+logging:
+  level:
+    com.vbforge.client: DEBUG
+    org.springframework.security: INFO

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout – VBForge Store</title>
+    <style>
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        :root{
+            --bg:#1a1a1e;--surface:#22222a;--surface2:#2a2a35;--border:#35354a;
+            --accent:#4a90e2;--accent-h:#357abd;--accent2:#f5c518;
+            --text:#e8e8f0;--muted:#8888a8;--danger:#e05252;--success:#52c78a;--radius:8px;
+        }
+        body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
+        nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 2rem;
+            height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+        .nav-brand{font-size:1.15rem;font-weight:800;text-decoration:none;color:var(--text);}
+        .nav-brand span{color:var(--accent2);}
+        .nav-links{display:flex;align-items:center;gap:1.4rem;}
+        .nav-links a{color:var(--muted);text-decoration:none;font-size:.875rem;transition:color .2s;}
+        .nav-links a:hover{color:var(--text);}
+        .btn{display:inline-block;padding:.38rem .9rem;border-radius:var(--radius);border:none;
+            cursor:pointer;font-size:.82rem;font-weight:600;text-decoration:none;transition:all .2s;}
+        .btn-outline{background:transparent;border:1px solid var(--border);color:var(--text);}
+        .btn-outline:hover{background:var(--surface2);}
+        main{flex:1;padding:2.5rem 2rem;max-width:900px;width:100%;margin:0 auto;}
+        .page-title{font-size:1.5rem;font-weight:800;margin-bottom:1.8rem;}
+        .page-title span{color:var(--accent2);}
+        .checkout-layout{display:grid;grid-template-columns:1fr 320px;gap:1.5rem;align-items:start;}
+        @media(max-width:700px){.checkout-layout{grid-template-columns:1fr;}}
+        /* FORM */
+        .form-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.75rem;}
+        .form-section-title{font-size:.85rem;font-weight:700;color:var(--muted);
+            text-transform:uppercase;letter-spacing:.08em;margin-bottom:1.1rem;}
+        .form-group{margin-bottom:1rem;}
+        .form-group label{display:block;font-size:.75rem;font-weight:600;color:var(--muted);
+            text-transform:uppercase;letter-spacing:.07em;margin-bottom:.35rem;}
+        .form-group textarea{width:100%;padding:.65rem .9rem;background:var(--surface2);border:1px solid var(--border);
+            border-radius:var(--radius);color:var(--text);font-size:.875rem;outline:none;
+            resize:vertical;min-height:100px;transition:border-color .2s;font-family:inherit;}
+        .form-group textarea:focus{border-color:var(--accent);}
+        .field-error{color:#f09090;font-size:.75rem;margin-top:.25rem;}
+        .btn-place{width:100%;padding:.78rem;background:var(--accent);color:#fff;border:none;
+            border-radius:var(--radius);font-size:.95rem;font-weight:700;cursor:pointer;
+            transition:background .2s;margin-top:.5rem;}
+        .btn-place:hover{background:var(--accent-h);}
+        /* ORDER SUMMARY */
+        .summary-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;}
+        .summary-title{font-size:.9rem;font-weight:700;margin-bottom:1.1rem;}
+        .summary-item{display:flex;justify-content:space-between;font-size:.82rem;margin-bottom:.6rem;
+            padding-bottom:.6rem;border-bottom:1px solid var(--border);}
+        .summary-item:last-of-type{border-bottom:none;margin-bottom:0;}
+        .summary-item .item-name{color:var(--text);}
+        .summary-item .item-qty{color:var(--muted);font-size:.75rem;margin-top:.1rem;}
+        .summary-item .item-sub{font-weight:600;color:var(--accent);white-space:nowrap;}
+        .divider{border:none;border-top:1px solid var(--border);margin:1rem 0;}
+        .total-row{display:flex;justify-content:space-between;font-size:1rem;font-weight:800;}
+        .total-row .amount{color:var(--accent);}
+        .back-link{display:inline-flex;align-items:center;gap:.4rem;color:var(--muted);
+            text-decoration:none;font-size:.82rem;margin-bottom:1.4rem;transition:color .2s;}
+        .back-link:hover{color:var(--accent);}
+        footer{background:var(--surface);border-top:1px solid var(--border);
+            padding:1.2rem 2rem;text-align:center;font-size:.78rem;color:var(--muted);}
+    </style>
+</head>
+<body>
+
+<nav>
+    <a class="nav-brand" href="/">VBForge <span>Store</span></a>
+    <div class="nav-links">
+        <a href="/">Home</a>
+        <a href="/products">Products</a>
+        <a href="/cart">Cart</a>
+        <a href="/orders">Orders</a>
+        <span sec:authentication="name" style="color:var(--muted);font-size:.82rem;"></span>
+        <form th:action="@{/logout}" method="post" style="display:inline">
+            <button type="submit" class="btn btn-outline">Sign out</button>
+        </form>
+    </div>
+</nav>
+
+<main>
+    <a href="/cart" class="back-link">← Back to cart</a>
+    <div class="page-title">Check<span>out</span></div>
+
+    <div class="checkout-layout">
+
+        <!-- Shipping form -->
+        <div class="form-card">
+            <div class="form-section-title">Shipping details</div>
+            <form th:action="@{/checkout/confirm}" th:object="${checkoutDto}" method="post">
+                <div class="form-group">
+                    <label for="shippingAddress">Shipping address</label>
+                    <textarea id="shippingAddress" th:field="*{shippingAddress}"
+                              placeholder="Street, city, postal code, country" required></textarea>
+                    <div class="field-error" th:if="${#fields.hasErrors('shippingAddress')}"
+                         th:errors="*{shippingAddress}"></div>
+                </div>
+                <button type="submit" class="btn-place">Place Order</button>
+            </form>
+        </div>
+
+        <!-- Order summary -->
+        <div class="summary-card">
+            <div class="summary-title">Your order</div>
+            <div class="summary-item" th:each="item : ${cart.items}">
+                <div>
+                    <div class="item-name" th:text="${item.productName}">Product</div>
+                    <div class="item-qty" th:text="'× ' + ${item.quantity}">× 1</div>
+                </div>
+                <div class="item-sub" th:text="'$' + ${#numbers.formatDecimal(item.subtotal,1,2)}">$0.00</div>
+            </div>
+            <hr class="divider">
+            <div class="total-row">
+                <span>Total</span>
+                <span class="amount" th:text="'$' + ${#numbers.formatDecimal(cart.totalPrice,1,2)}">$0.00</span>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<footer>&copy; 2026 VBForge Store — All rights reserved.</footer>
+</body>
+</html>

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${product.name} + ' – VBForge Store'">Product – VBForge Store</title>
+    <style>
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        :root{
+            --bg:#1a1a1e;--surface:#22222a;--surface2:#2a2a35;--border:#35354a;
+            --accent:#4a90e2;--accent-h:#357abd;--accent2:#f5c518;
+            --text:#e8e8f0;--muted:#8888a8;--danger:#e05252;--success:#52c78a;--radius:8px;
+        }
+        body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
+        nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 2rem;
+            height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+        .nav-brand{font-size:1.15rem;font-weight:800;text-decoration:none;color:var(--text);}
+        .nav-brand span{color:var(--accent2);}
+        .nav-links{display:flex;align-items:center;gap:1.4rem;}
+        .nav-links a{color:var(--muted);text-decoration:none;font-size:.875rem;transition:color .2s;}
+        .nav-links a:hover{color:var(--text);}
+        .btn{display:inline-block;padding:.38rem .9rem;border-radius:var(--radius);border:none;
+            cursor:pointer;font-size:.82rem;font-weight:600;text-decoration:none;transition:all .2s;}
+        .btn-outline{background:transparent;border:1px solid var(--border);color:var(--text);}
+        .btn-outline:hover{background:var(--surface2);}
+        .btn-yellow{background:var(--accent2);color:#111;font-weight:700;}
+        .btn-yellow:hover{background:#e0b010;}
+        main{flex:1;padding:2.5rem 2rem;max-width:900px;width:100%;margin:0 auto;}
+        .breadcrumb{display:flex;align-items:center;gap:.5rem;font-size:.78rem;color:var(--muted);margin-bottom:1.8rem;}
+        .breadcrumb a{color:var(--muted);text-decoration:none;}
+        .breadcrumb a:hover{color:var(--accent);}
+        .breadcrumb-sep{color:var(--border);}
+        .detail-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:2rem;
+            display:grid;grid-template-columns:1fr 1fr;gap:2.5rem;}
+        @media(max-width:640px){.detail-card{grid-template-columns:1fr;}}
+        .product-image-placeholder{background:var(--surface2);border:1px solid var(--border);
+            border-radius:var(--radius);aspect-ratio:1;display:flex;align-items:center;justify-content:center;
+            font-size:4rem;}
+        .product-info{display:flex;flex-direction:column;}
+        .product-cat{font-size:.72rem;font-weight:700;color:var(--accent2);text-transform:uppercase;
+            letter-spacing:.1em;margin-bottom:.6rem;}
+        .product-name{font-size:1.6rem;font-weight:800;line-height:1.25;margin-bottom:1rem;letter-spacing:-.02em;}
+        .product-price{font-size:2rem;font-weight:800;color:var(--accent);margin-bottom:.8rem;}
+        .product-desc{color:var(--muted);font-size:.9rem;line-height:1.7;margin-bottom:1.4rem;flex:1;}
+        .stock-row{display:flex;align-items:center;gap:.6rem;margin-bottom:1.5rem;}
+        .stock-badge{font-size:.75rem;font-weight:700;padding:.22rem .6rem;border-radius:4px;}
+        .in-stock{background:rgba(82,199,138,.15);color:var(--success);}
+        .low-stock{background:rgba(245,197,24,.15);color:var(--accent2);}
+        .out-stock{background:rgba(224,82,82,.1);color:var(--danger);}
+        .stock-count{font-size:.8rem;color:var(--muted);}
+        .add-form{display:flex;flex-direction:column;gap:.8rem;}
+        .qty-row{display:flex;align-items:center;gap:.8rem;}
+        .qty-label{font-size:.78rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.07em;}
+        .qty-input{width:70px;padding:.5rem .7rem;background:var(--surface2);border:1px solid var(--border);
+            border-radius:var(--radius);color:var(--text);font-size:.9rem;text-align:center;outline:none;}
+        .qty-input:focus{border-color:var(--accent);}
+        .btn-cart{padding:.72rem 1.5rem;background:var(--accent);color:#fff;border:none;
+            border-radius:var(--radius);font-size:.9rem;font-weight:700;cursor:pointer;transition:background .2s;}
+        .btn-cart:hover{background:var(--accent-h);}
+        .btn-cart:disabled{background:var(--surface2);color:var(--muted);cursor:not-allowed;}
+        .login-prompt{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);
+            padding:.9rem 1rem;font-size:.85rem;color:var(--muted);}
+        .login-prompt a{color:var(--accent);text-decoration:none;font-weight:600;}
+        .alert-success{background:rgba(82,199,138,.1);border:1px solid rgba(82,199,138,.35);color:#80dca8;
+            padding:.65rem .9rem;border-radius:var(--radius);margin-bottom:1rem;font-size:.82rem;}
+        footer{background:var(--surface);border-top:1px solid var(--border);
+            padding:1.2rem 2rem;text-align:center;font-size:.78rem;color:var(--muted);}
+    </style>
+</head>
+<body>
+
+<nav>
+    <a class="nav-brand" href="/">VBForge <span>Store</span></a>
+    <div class="nav-links">
+        <a href="/">Home</a>
+        <a href="/products">Products</a>
+        <span sec:authorize="isAuthenticated()">
+      <a href="/cart">Cart</a>
+      <a href="/orders">Orders</a>
+    </span>
+        <span sec:authorize="isAuthenticated()">
+      <form th:action="@{/logout}" method="post" style="display:inline">
+        <button type="submit" class="btn btn-outline">Sign out</button>
+      </form>
+    </span>
+        <span sec:authorize="isAnonymous()">
+      <a href="/login" class="btn btn-outline">Sign in</a>
+      <a href="/register" class="btn btn-yellow">Register</a>
+    </span>
+    </div>
+</nav>
+
+<main>
+    <div class="breadcrumb">
+        <a href="/">Home</a><span class="breadcrumb-sep">/</span>
+        <a href="/products">Products</a><span class="breadcrumb-sep">/</span>
+        <span th:text="${product.name}">Product</span>
+    </div>
+
+    <div th:if="${cartSuccess}" class="alert-success" th:text="${cartSuccess}"></div>
+
+    <div class="detail-card">
+        <!-- Image placeholder — replace with real <img> when you add image support -->
+        <div class="product-image-placeholder">
+      <span th:switch="${product.category.name()}">
+        <span th:case="'ELECTRONICS'">💻</span>
+        <span th:case="'CLOTHING'">👕</span>
+        <span th:case="'BOOKS'">📚</span>
+        <span th:case="'FOOD'">🍕</span>
+        <span th:case="*">📦</span>
+      </span>
+        </div>
+
+        <div class="product-info">
+            <div class="product-cat" th:text="${product.category}">CATEGORY</div>
+            <div class="product-name" th:text="${product.name}">Product name</div>
+            <div class="product-price" th:text="'$' + ${#numbers.formatDecimal(product.price,1,2)}">$0.00</div>
+            <div class="product-desc" th:text="${product.description ?: 'No description available.'}"></div>
+
+            <div class="stock-row">
+                <span th:if="${product.stock > 5}" class="stock-badge in-stock">In stock</span>
+                <span th:if="${product.stock > 0 and product.stock <= 5}" class="stock-badge low-stock">Low stock</span>
+                <span th:if="${product.stock == 0}" class="stock-badge out-stock">Out of stock</span>
+                <span class="stock-count" th:if="${product.stock > 0}"
+                      th:text="${product.stock} + ' units available'"></span>
+            </div>
+
+            <!-- Add to cart: authenticated -->
+            <div sec:authorize="isAuthenticated()">
+                <form th:if="${product.inStock}" th:action="@{/cart/add}" method="post" class="add-form">
+                    <input type="hidden" name="productId" th:value="${product.id}">
+                    <div class="qty-row">
+                        <span class="qty-label">Qty</span>
+                        <input type="number" name="quantity" value="1" min="1"
+                               th:max="${product.stock}" class="qty-input">
+                    </div>
+                    <button type="submit" class="btn-cart">Add to cart</button>
+                </form>
+                <button th:unless="${product.inStock}" class="btn-cart" disabled>Out of stock</button>
+            </div>
+
+            <!-- Add to cart: anonymous -->
+            <div sec:authorize="isAnonymous()" class="login-prompt">
+                <a href="/login">Sign in</a> or <a href="/register">register</a> to add this item to your cart.
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer>&copy; 2026 VBForge Store — All rights reserved.</footer>
+</body>
+</html>
