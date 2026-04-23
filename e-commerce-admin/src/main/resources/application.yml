@@ -1,5 +1,9 @@
 server:
   port: 8082 # admin's application running on port http://localhost:8082/
+  servlet:
+    session:
+      cookie:
+        name: ADMIN_SESSION
 
 spring:
   application:

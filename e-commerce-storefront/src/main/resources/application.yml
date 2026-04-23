@@ -1,5 +1,9 @@
 server:
   port: 8081 # client's application running on port http://localhost:8081/
+  servlet:
+    session:
+      cookie:
+        name: STOREFRONT_SESSION
 
 spring:
   application:
