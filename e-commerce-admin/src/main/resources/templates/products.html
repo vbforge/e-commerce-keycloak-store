@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Products – Admin Panel</title>
+    <style>
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        :root{--bg:#1a1a1e;--surface:#22222a;--surface2:#2a2a35;--border:#35354a;
+            --accent:#4a90e2;--accent-h:#357abd;--accent2:#f5c518;
+            --text:#e8e8f0;--muted:#8888a8;--danger:#e05252;--success:#52c78a;--radius:8px;}
+        body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;}
+        .sidebar{width:230px;min-height:100vh;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;flex-shrink:0;}
+        .sb-brand{padding:1.4rem 1.25rem 1rem;border-bottom:1px solid var(--border);}
+        .sb-brand .mark{font-size:1.5rem;}.sb-brand h2{font-size:.95rem;font-weight:800;margin-top:.3rem;}
+        .sb-brand h2 span{color:var(--accent2);}.sb-brand p{font-size:.72rem;color:var(--muted);margin-top:.15rem;}
+        .sb-nav{flex:1;padding:.8rem 0;}
+        .sb-section{padding:.4rem 1.25rem .2rem;font-size:.63rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;margin-top:.6rem;}
+        .sb-link{display:flex;align-items:center;gap:.65rem;padding:.55rem 1.25rem;color:var(--muted);text-decoration:none;font-size:.875rem;transition:all .15s;border-right:2px solid transparent;}
+        .sb-link:hover{color:var(--text);background:var(--surface2);}
+        .sb-link.active{color:var(--accent2);background:rgba(245,197,24,.07);border-right-color:var(--accent2);}
+        .sb-link .ic{width:16px;text-align:center;font-size:.9rem;}
+        .sb-footer{padding:1rem 1.25rem;border-top:1px solid var(--border);}
+        .sb-user{font-size:.75rem;color:var(--muted);margin-bottom:.6rem;}
+        .sb-user strong{display:block;color:var(--text);font-size:.82rem;}
+        .btn-signout{width:100%;padding:.45rem;background:transparent;border:1px solid var(--border);border-radius:var(--radius);color:var(--muted);font-size:.78rem;cursor:pointer;transition:all .2s;}
+        .btn-signout:hover{background:var(--surface2);color:var(--text);}
+        .main{flex:1;display:flex;flex-direction:column;min-width:0;}
+        .topbar{height:56px;background:var(--surface);border-bottom:1px solid var(--border);padding:0 2rem;display:flex;align-items:center;position:sticky;top:0;z-index:50;}
+        .topbar-title{font-size:1rem;font-weight:700;}
+        .content{padding:2rem;flex:1;}
+        .layout{display:grid;grid-template-columns:310px 1fr;gap:1.5rem;align-items:start;}
+        @media(max-width:900px){.layout{grid-template-columns:1fr;}}
+        .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+        .card-head{padding:.85rem 1.25rem;border-bottom:1px solid var(--border);}
+        .card-head h3{font-size:.9rem;font-weight:700;}
+        .form-body{padding:1.25rem;}
+        .fg{margin-bottom:.9rem;}
+        .fg label{display:block;font-size:.72rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.3rem;}
+        .fg input,.fg select,.fg textarea{width:100%;padding:.55rem .8rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:.875rem;outline:none;transition:border-color .2s;}
+        .fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--accent);}
+        .fg textarea{resize:vertical;min-height:72px;}
+        .fg select option{background:var(--surface2);}
+        .field-err{color:#f09090;font-size:.75rem;margin-top:.2rem;}
+        .btn{display:inline-block;padding:.5rem 1rem;border-radius:var(--radius);border:none;cursor:pointer;font-size:.83rem;font-weight:600;transition:all .2s;text-decoration:none;text-align:center;}
+        .btn-primary{background:var(--accent);color:#fff;width:100%;padding:.65rem;}
+        .btn-primary:hover{background:var(--accent-h);}
+        .btn-outline-full{background:transparent;border:1px solid var(--border);color:var(--text);width:100%;padding:.55rem;margin-top:.4rem;}
+        .btn-outline-full:hover{background:var(--surface2);}
+        .btn-edit{background:rgba(74,144,226,.12);color:var(--accent);padding:.27rem .65rem;font-size:.75rem;}
+        .btn-edit:hover{background:rgba(74,144,226,.25);}
+        .btn-del{background:var(--danger);color:#fff;padding:.27rem .65rem;font-size:.75rem;}
+        .btn-del:hover{background:#c94444;}
+        table{width:100%;border-collapse:collapse;font-size:.85rem;}
+        thead th{background:var(--surface2);padding:.55rem 1rem;text-align:left;color:var(--muted);font-weight:700;font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;}
+        tbody tr{border-bottom:1px solid var(--border);}
+        tbody tr:last-child{border-bottom:none;}
+        tbody tr:hover{background:var(--surface2);}
+        tbody td{padding:.65rem 1rem;vertical-align:middle;}
+        .tag{display:inline-block;padding:.15rem .5rem;border-radius:4px;font-size:.68rem;font-weight:700;background:rgba(245,197,24,.12);color:var(--accent2);text-transform:uppercase;letter-spacing:.04em;}
+        .alert{padding:.65rem 1rem;border-radius:var(--radius);margin-bottom:1.2rem;font-size:.82rem;}
+        .alert-success{background:rgba(82,199,138,.1);border:1px solid rgba(82,199,138,.35);color:#80dca8;}
+        .empty{padding:2rem;text-align:center;color:var(--muted);font-size:.875rem;}
+        .stock-low{color:var(--accent2);font-weight:600;}
+        .stock-out{color:var(--danger);font-weight:600;}
+    </style>
+</head>
+<body>
+<aside class="sidebar">
+    <div class="sb-brand"><div class="mark">⚙️</div><h2>Admin <span>Panel</span></h2><p>VBForge Store</p></div>
+    <nav class="sb-nav">
+        <div class="sb-section">Overview</div>
+        <a href="/"         class="sb-link"><span class="ic">📊</span> Dashboard</a>
+        <div class="sb-section">Catalogue</div>
+        <a href="/products" class="sb-link active"><span class="ic">📦</span> Products</a>
+        <div class="sb-section">Operations</div>
+        <a href="/orders"   class="sb-link"><span class="ic">🛒</span> Orders</a>
+        <a href="/users"    class="sb-link"><span class="ic">👥</span> Users</a>
+    </nav>
+    <div class="sb-footer">
+        <div class="sb-user">Signed in as<br><strong th:text="${#authentication.name}">admin</strong></div>
+        <form th:action="@{/logout}" method="post"><button type="submit" class="btn-signout">Sign Out</button></form>
+    </div>
+</aside>
+
+<div class="main">
+    <header class="topbar"><span class="topbar-title">Products</span></header>
+    <div class="content">
+        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+        <div class="layout">
+
+            <!-- Form -->
+            <div class="card">
+                <div class="card-head">
+                    <h3 th:text="${productDto.id != null} ? 'Edit Product' : 'New Product'">New Product</h3>
+                </div>
+                <div class="form-body">
+                    <form th:action="@{/products/save}" th:object="${productDto}" method="post">
+                        <input type="hidden" th:field="*{id}">
+                        <div class="fg"><label>Name</label>
+                            <input type="text" th:field="*{name}" placeholder="Product name" required>
+                            <div class="field-err" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
+                        </div>
+                        <div class="fg"><label>Price ($)</label>
+                            <input type="number" step="0.01" min="0.01" th:field="*{price}" placeholder="0.00" required>
+                            <div class="field-err" th:if="${#fields.hasErrors('price')}" th:errors="*{price}"></div>
+                        </div>
+                        <div class="fg"><label>Stock</label>
+                            <input type="number" min="0" th:field="*{stock}" placeholder="0" required>
+                            <div class="field-err" th:if="${#fields.hasErrors('stock')}" th:errors="*{stock}"></div>
+                        </div>
+                        <div class="fg"><label>Category</label>
+                            <select th:field="*{category}" required>
+                                <option value="">Select…</option>
+                                <option th:each="cat : ${categories}" th:value="${cat}" th:text="${cat}">CAT</option>
+                            </select>
+                            <div class="field-err" th:if="${#fields.hasErrors('category')}" th:errors="*{category}"></div>
+                        </div>
+                        <div class="fg"><label>Description</label>
+                            <textarea th:field="*{description}" placeholder="Optional…"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary"
+                                th:text="${productDto.id != null} ? 'Update Product' : 'Add Product'">Add</button>
+                        <a th:if="${productDto.id != null}" href="/products" class="btn btn-outline-full">Cancel</a>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Table -->
+            <div class="card">
+                <div th:if="${#lists.isEmpty(products)}" class="empty">No products yet.</div>
+                <table th:unless="${#lists.isEmpty(products)}">
+                    <thead><tr><th>ID</th><th>Name</th><th>Price</th><th>Stock</th><th>Category</th><th>Actions</th></tr></thead>
+                    <tbody>
+                    <tr th:each="p : ${products}">
+                        <td style="color:var(--muted)" th:text="${p.id}">1</td>
+                        <td>
+                            <div style="font-weight:600" th:text="${p.name}">Name</div>
+                            <div style="color:var(--muted);font-size:.75rem;margin-top:.1rem"
+                                 th:if="${p.description != null and !p.description.isEmpty()}"
+                                 th:text="${#strings.abbreviate(p.description,50)}"></div>
+                        </td>
+                        <td style="font-weight:700" th:text="'$'+${#numbers.formatDecimal(p.price,1,2)}">$0</td>
+                        <td>
+                            <span th:if="${p.stock > 5}" th:text="${p.stock}">0</span>
+                            <span th:if="${p.stock > 0 and p.stock <= 5}" class="stock-low" th:text="${p.stock} + ' ⚠'">low</span>
+                            <span th:if="${p.stock == 0}" class="stock-out">Out</span>
+                        </td>
+                        <td><span class="tag" th:text="${p.category}">CAT</span></td>
+                        <td>
+                            <a th:href="@{/products/edit/{id}(id=${p.id})}" class="btn btn-edit">Edit</a>
+                            <form th:action="@{/products/delete/{id}(id=${p.id})}" method="post" style="display:inline"
+                                  onsubmit="return confirm('Delete this product?')">
+                                <button type="submit" class="btn btn-del">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+</div>
+</body>
+</html>

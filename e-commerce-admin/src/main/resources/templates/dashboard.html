@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard – Admin Panel</title>
+    <style>
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        :root{
+            --bg:#1a1a1e;--surface:#22222a;--surface2:#2a2a35;--border:#35354a;
+            --accent:#4a90e2;--accent-h:#357abd;--accent2:#f5c518;
+            --text:#e8e8f0;--muted:#8888a8;--danger:#e05252;--success:#52c78a;
+            --info:#52b8e0;--warning:#f5c518;--radius:8px;
+        }
+        body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;}
+        /* SIDEBAR */
+        .sidebar{width:230px;min-height:100vh;background:var(--surface);border-right:1px solid var(--border);
+            display:flex;flex-direction:column;position:sticky;top:0;height:100vh;flex-shrink:0;}
+        .sb-brand{padding:1.4rem 1.25rem 1rem;border-bottom:1px solid var(--border);}
+        .sb-brand .mark{font-size:1.5rem;}
+        .sb-brand h2{font-size:.95rem;font-weight:800;margin-top:.3rem;letter-spacing:-.01em;}
+        .sb-brand h2 span{color:var(--accent2);}
+        .sb-brand p{font-size:.72rem;color:var(--muted);margin-top:.15rem;}
+        .sb-nav{flex:1;padding:.8rem 0;}
+        .sb-section{padding:.4rem 1.25rem .2rem;font-size:.63rem;font-weight:700;
+            color:var(--muted);text-transform:uppercase;letter-spacing:.12em;margin-top:.6rem;}
+        .sb-link{display:flex;align-items:center;gap:.65rem;padding:.55rem 1.25rem;
+            color:var(--muted);text-decoration:none;font-size:.875rem;transition:all .15s;border-right:2px solid transparent;}
+        .sb-link:hover{color:var(--text);background:var(--surface2);}
+        .sb-link.active{color:var(--accent2);background:rgba(245,197,24,.07);border-right-color:var(--accent2);}
+        .sb-link .ic{width:16px;text-align:center;font-size:.9rem;}
+        .sb-footer{padding:1rem 1.25rem;border-top:1px solid var(--border);}
+        .sb-user{font-size:.75rem;color:var(--muted);margin-bottom:.6rem;}
+        .sb-user strong{display:block;color:var(--text);font-size:.82rem;}
+        .btn-signout{width:100%;padding:.45rem;background:transparent;border:1px solid var(--border);
+            border-radius:var(--radius);color:var(--muted);font-size:.78rem;cursor:pointer;transition:all .2s;}
+        .btn-signout:hover{background:var(--surface2);color:var(--text);}
+        /* MAIN */
+        .main{flex:1;display:flex;flex-direction:column;min-width:0;}
+        .topbar{height:56px;background:var(--surface);border-bottom:1px solid var(--border);
+            padding:0 2rem;display:flex;align-items:center;justify-content:space-between;
+            position:sticky;top:0;z-index:50;}
+        .topbar-title{font-size:1rem;font-weight:700;}
+        .topbar-meta{font-size:.78rem;color:var(--muted);}
+        .content{padding:2rem;flex:1;}
+        /* STATS */
+        .stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:1rem;margin-bottom:2rem;}
+        .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.2rem;}
+        .stat-label{font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;
+            letter-spacing:.09em;margin-bottom:.4rem;}
+        .stat-value{font-size:1.9rem;font-weight:800;line-height:1;}
+        .stat-sub{font-size:.72rem;color:var(--muted);margin-top:.3rem;}
+        .c-accent{color:var(--accent);}
+        .c-yellow{color:var(--accent2);}
+        .c-success{color:var(--success);}
+        .c-info{color:var(--info);}
+        .c-danger{color:var(--danger);}
+        /* TABLE CARD */
+        .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:1.5rem;}
+        .card-head{padding:.85rem 1.25rem;border-bottom:1px solid var(--border);
+            display:flex;align-items:center;justify-content:space-between;}
+        .card-head h3{font-size:.9rem;font-weight:700;}
+        .card-link{font-size:.78rem;color:var(--accent);text-decoration:none;}
+        .card-link:hover{text-decoration:underline;}
+        table{width:100%;border-collapse:collapse;font-size:.85rem;}
+        thead th{background:var(--surface2);padding:.55rem 1rem;text-align:left;
+            color:var(--muted);font-weight:700;font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;}
+        tbody tr{border-bottom:1px solid var(--border);}
+        tbody tr:last-child{border-bottom:none;}
+        tbody tr:hover{background:var(--surface2);}
+        tbody td{padding:.65rem 1rem;vertical-align:middle;}
+        .badge{display:inline-block;padding:.18rem .55rem;border-radius:4px;
+            font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;}
+        .b-pending  {background:rgba(245,197,24,.15);color:var(--warning);}
+        .b-confirmed{background:rgba(74,144,226,.15);color:var(--accent);}
+        .b-shipped  {background:rgba(82,184,224,.15);color:var(--info);}
+        .b-delivered{background:rgba(82,199,138,.15);color:var(--success);}
+        .b-cancelled{background:rgba(224,82,82,.12);color:var(--danger);}
+        .empty{padding:2rem;text-align:center;color:var(--muted);font-size:.875rem;}
+    </style>
+</head>
+<body>
+
+<aside class="sidebar">
+    <div class="sb-brand">
+        <div class="mark">⚙️</div>
+        <h2>Admin <span>Panel</span></h2>
+        <p>VBForge Store</p>
+    </div>
+    <nav class="sb-nav">
+        <div class="sb-section">Overview</div>
+        <a href="/"        class="sb-link active"><span class="ic">📊</span> Dashboard</a>
+        <div class="sb-section">Catalogue</div>
+        <a href="/products" class="sb-link"><span class="ic">📦</span> Products</a>
+        <div class="sb-section">Operations</div>
+        <a href="/orders"  class="sb-link"><span class="ic">🛒</span> Orders</a>
+        <a href="/users"   class="sb-link"><span class="ic">👥</span> Users</a>
+    </nav>
+    <div class="sb-footer">
+        <div class="sb-user">Signed in as<br><strong th:text="${#authentication.name}">admin</strong></div>
+        <form th:action="@{/logout}" method="post">
+            <button type="submit" class="btn-signout">Sign Out</button>
+        </form>
+    </div>
+</aside>
+
+<div class="main">
+    <header class="topbar">
+        <span class="topbar-title">Dashboard</span>
+        <span class="topbar-meta" th:text="${#temporals.format(#temporals.createNow(),'EEEE, d MMMM yyyy')}"></span>
+    </header>
+    <div class="content">
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Products</div>
+                <div class="stat-value c-accent" th:text="${stats.totalProducts}">0</div>
+                <div class="stat-sub">In catalogue</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Users</div>
+                <div class="stat-value c-info" th:text="${stats.totalUsers}">0</div>
+                <div class="stat-sub">Registered</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Orders</div>
+                <div class="stat-value c-accent" th:text="${stats.totalOrders}">0</div>
+                <div class="stat-sub">All time</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Pending</div>
+                <div class="stat-value c-yellow" th:text="${stats.pendingOrders}">0</div>
+                <div class="stat-sub">Awaiting action</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Shipped</div>
+                <div class="stat-value c-info" th:text="${stats.shippedOrders}">0</div>
+                <div class="stat-sub">In transit</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Delivered</div>
+                <div class="stat-value c-success" th:text="${stats.deliveredOrders}">0</div>
+                <div class="stat-sub">Completed</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Revenue</div>
+                <div class="stat-value c-success"
+                     th:text="'$'+${#numbers.formatDecimal(stats.totalRevenue,1,2)}">$0</div>
+                <div class="stat-sub">Excl. cancelled</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Cancelled</div>
+                <div class="stat-value c-danger" th:text="${stats.cancelledOrders}">0</div>
+                <div class="stat-sub">Lost orders</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-head">
+                <h3>Recent Orders</h3>
+                <a href="/orders" class="card-link">View all →</a>
+            </div>
+            <div th:if="${#lists.isEmpty(recentOrders)}" class="empty">No orders yet.</div>
+            <table th:unless="${#lists.isEmpty(recentOrders)}">
+                <thead><tr><th>#</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th><th>Date</th></tr></thead>
+                <tbody>
+                <tr th:each="o : ${recentOrders}">
+                    <td style="color:var(--muted)" th:text="${o.id}">#</td>
+                    <td th:text="${o.customerUsername}">user</td>
+                    <td th:text="${#lists.size(o.items)}" style="color:var(--muted)">0</td>
+                    <td th:text="'$'+${#numbers.formatDecimal(o.totalPrice,1,2)}" style="font-weight:700">$0</td>
+                    <td>
+              <span th:classappend="'b-'+${o.status.name().toLowerCase()}"
+                    class="badge" th:text="${o.status}">STATUS</span>
+                    </td>
+                    <td style="color:var(--muted)" th:text="${#temporals.format(o.createdAt,'dd MMM yyyy')}">date</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error – Admin Panel</title>
+    <style>
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        :root{--bg:#1a1a1e;--surface:#22222a;--border:#35354a;--accent:#4a90e2;--accent2:#f5c518;--text:#e8e8f0;--muted:#8888a8;--radius:8px;}
+        body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;}
+        .box{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:2.5rem;max-width:460px;width:100%;text-align:center;}
+        .icon{font-size:3rem;margin-bottom:1rem;}
+        .title{font-size:1.3rem;font-weight:800;margin-bottom:.6rem;}
+        .title span{color:var(--accent2);}
+        .msg{color:var(--muted);font-size:.875rem;line-height:1.65;margin-bottom:1.8rem;}
+        .btn{display:inline-block;padding:.6rem 1.4rem;background:var(--accent);color:#fff;border-radius:var(--radius);text-decoration:none;font-weight:700;font-size:.875rem;transition:opacity .2s;}
+        .btn:hover{opacity:.85;}
+    </style>
+</head>
+<body>
+<div class="box">
+    <div class="icon">⚠️</div>
+    <div class="title"><span th:text="${errorTitle} ?: 'Something went wrong'">Error</span></div>
+    <div class="msg" th:text="${errorMessage} ?: 'An unexpected error occurred. Please try again.'"></div>
+    <a href="/" class="btn">Back to Dashboard</a>
+</div>
+</body>
+</html>
